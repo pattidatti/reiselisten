@@ -12,7 +12,7 @@ export function Header() {
   const navigate = useNavigate();
 
   return (
-    <header className="flex items-center justify-between mb-12">
+    <header className="flex items-center justify-between mb-6 md:mb-12">
       <div
         className="flex items-center gap-2 cursor-pointer group"
         onClick={() => navigate('/dashbord')}

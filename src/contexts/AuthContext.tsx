@@ -39,19 +39,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const displayName = firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Bruker';
 
-      // Sync basic profile data
+      // Check if profile already exists before syncing
+      const profileDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+      const isNewUser = !profileDoc.exists();
+
+      // Only set displayName/photoURL for new users — existing users manage these via profile editing
       await setDoc(doc(db, 'users', firebaseUser.uid), {
         uid: firebaseUser.uid,
         email: firebaseUser.email,
-        displayName,
-        photoURL: firebaseUser.photoURL || '',
+        ...(isNewUser ? {
+          displayName,
+          photoURL: firebaseUser.photoURL || '',
+        } : {}),
         updatedAt: serverTimestamp(),
       }, { merge: true });
 
-      // Load full profile
-      const profileDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-      if (profileDoc.exists()) {
-        const data = profileDoc.data() as UserProfile;
+      // Reload profile after sync
+      const updatedProfileDoc = isNewUser
+        ? await getDoc(doc(db, 'users', firebaseUser.uid))
+        : profileDoc;
+      if (updatedProfileDoc.exists()) {
+        const data = updatedProfileDoc.data() as UserProfile;
         setUserProfile(data);
         setNeedsUsernameSetup(!data.username);
 

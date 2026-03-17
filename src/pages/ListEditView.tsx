@@ -213,7 +213,7 @@ export function ListEditView() {
                   </div>
                   <button
                     onClick={() => deleteItem(item.id)}
-                    className="p-2 text-stone-200 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                    className="p-2 text-stone-200 hover:text-red-500 transition-colors sm:opacity-0 sm:group-hover:opacity-100"
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>

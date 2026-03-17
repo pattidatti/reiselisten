@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#1c1917"/>
+  <text x="100" y="200" font-family="system-ui, sans-serif" font-size="80" font-weight="600" fill="white" letter-spacing="-2">🎒 Reiselisten</text>
+  <text x="100" y="310" font-family="system-ui, sans-serif" font-size="48" fill="#a8a29e" letter-spacing="-1">Pakk smartere, reis lettere.</text>
+  <text x="100" y="420" font-family="system-ui, sans-serif" font-size="28" fill="#78716c">Lag, del og oppdag pakkelister for reiser.</text>
+  <text x="100" y="460" font-family="system-ui, sans-serif" font-size="28" fill="#78716c">Følg andre reisende og kopier favorittlister.</text>
+  <text x="100" y="550" font-family="system-ui, sans-serif" font-size="22" fill="#57534e">reiselisten.no</text>
+</svg>

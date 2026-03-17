@@ -105,6 +105,8 @@ export function EditProfilePage() {
       }
 
       const updateData: Record<string, unknown> = {
+        uid: user.uid,
+        email: user.email,
         displayName,
         bio,
         username: normalizedUsername,

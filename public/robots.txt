@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://reiselisten.no/sitemap.xml
