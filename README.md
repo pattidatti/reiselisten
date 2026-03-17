@@ -4,19 +4,42 @@
 
 </div>
 
-# Run and deploy your AI Studio app
+# Reiselisten — Pakkelisten
 
-This contains everything you need to run your app locally.
+Create, share, and discover packing lists for every adventure.
 
-View your app in AI Studio: https://ai.studio/apps/ec61327b-caf5-47aa-91df-3f7b8e7650c9
+View app in AI Studio: https://ai.studio/apps/ec61327b-caf5-47aa-91df-3f7b8e7650c9
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
-
+**Prerequisites:** Node.js
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+   ```bash
+   npm install
+   ```
+
+2. Copy `.env.example` to `.env.local` and fill in your keys:
+   ```bash
+   cp .env.example .env.local
+   ```
+
+   Required environment variables:
+
+   | Variable | Description |
+   |---|---|
+   | `GEMINI_API_KEY` | Gemini AI API key |
+   | `VITE_FIREBASE_API_KEY` | Firebase API key |
+   | `VITE_FIREBASE_AUTH_DOMAIN` | Firebase auth domain (e.g. `your-project.firebaseapp.com`) |
+   | `VITE_FIREBASE_PROJECT_ID` | Firebase project ID |
+   | `VITE_FIREBASE_APP_ID` | Firebase app ID |
+   | `VITE_FIREBASE_FIRESTORE_DB_ID` | Firestore database ID |
+
 3. Run the app:
-   `npm run dev`
+   ```bash
+   npm run dev
+   ```
+
+## Deploy to GitHub Pages
+
+The project includes a GitHub Actions workflow (`.github/workflows/deploy.yml`). Add the environment variables above as repository secrets in GitHub Settings.

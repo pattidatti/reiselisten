@@ -1,3 +1,5 @@
+import { Timestamp } from 'firebase/firestore';
+
 export interface UserProfile {
   uid: string;
   email: string;
@@ -14,7 +16,7 @@ export interface PackingList {
   ownerId: string;
   ownerEmail: string;
   sharedWith: string[]; // uids or emails
-  createdAt: any;
+  createdAt: Timestamp;
 }
 
 export interface ListItem {
@@ -22,5 +24,5 @@ export interface ListItem {
   text: string;
   isChecked: boolean;
   listId: string;
-  createdAt: any;
+  createdAt: Timestamp;
 }
