@@ -1,0 +1,58 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    },
+    "PackingList": {
+      "title": "Packing List",
+      "description": "A packing list created by a user",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string", "enum": ["General", "Trip", "Ski", "Children", "Other"] },
+        "isPublic": { "type": "boolean" },
+        "ownerId": { "type": "string" },
+        "ownerEmail": { "type": "string" },
+        "sharedWith": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "ownerId", "isPublic"]
+    },
+    "ListItem": {
+      "title": "List Item",
+      "description": "An item within a packing list",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "isChecked": { "type": "boolean" },
+        "listId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["text", "isChecked", "listId"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/lists/{listId}": {
+      "schema": "PackingList",
+      "description": "Packing lists"
+    },
+    "/lists/{listId}/items/{itemId}": {
+      "schema": "ListItem",
+      "description": "Items in a packing list"
+    }
+  }
+}
