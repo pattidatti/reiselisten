@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDocumentData, useCollection } from 'react-firebase-hooks/firestore';
 import {
-  doc, collection, query, orderBy, addDoc, updateDoc, deleteDoc, serverTimestamp,
+  doc, collection, query, orderBy, addDoc, updateDoc, deleteDoc, serverTimestamp, Timestamp,
 } from 'firebase/firestore';
-import { db } from '../firebase';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { db, storage } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { PackingList, ListItem } from '../types';
 import { handleFirestoreError, OperationType } from '../utils/firestore-error';
@@ -14,9 +15,10 @@ import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
 import { ShareModal } from '../components/lists/ShareModal';
 import { StarButton } from '../components/lists/StarButton';
+import { DepartureCountdown } from '../components/lists/DepartureCountdown';
 import {
   ArrowLeft, CheckCircle2, Circle, Trash2, Share2, Globe, Lock,
-  User as UserIcon, Backpack,
+  User as UserIcon, Backpack, Camera, X, CalendarDays, Loader2,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -36,6 +38,8 @@ export function ListEditView() {
   const [itemsSnap] = useCollection(itemsQuery);
   const [newItemText, setNewItemText] = useState('');
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const items = itemsSnap?.docs.map(d => ({ id: d.id, ...d.data() } as ListItem)) || [];
 
@@ -84,6 +88,60 @@ export function ListEditView() {
     }
   };
 
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Velg en bildefil (JPG, PNG, etc.)');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Bildet kan maks være 5 MB');
+      return;
+    }
+
+    setCoverUploading(true);
+    try {
+      const coverRef = ref(storage, `listCovers/${listId}`);
+      await uploadBytes(coverRef, file);
+      const url = await getDownloadURL(coverRef);
+      await updateDoc(doc(db, 'lists', listId!), {
+        coverImageURL: url,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `lists/${listId}`);
+    } finally {
+      setCoverUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveCover = async () => {
+    try {
+      const coverRef = ref(storage, `listCovers/${listId}`);
+      await deleteObject(coverRef).catch(() => {});
+      await updateDoc(doc(db, 'lists', listId!), {
+        coverImageURL: null,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `lists/${listId}`);
+    }
+  };
+
+  const handleDepartureDateChange = async (dateString: string) => {
+    try {
+      await updateDoc(doc(db, 'lists', listId!), {
+        departureDate: dateString ? Timestamp.fromDate(new Date(dateString)) : null,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `lists/${listId}`);
+    }
+  };
+
   if (listLoading) {
     return (
       <div className="py-12 text-center">
@@ -101,6 +159,9 @@ export function ListEditView() {
   const isOwner = listData.ownerId === user?.uid;
   const checkedCount = items.filter(i => i.isChecked).length;
   const progress = items.length > 0 ? (checkedCount / items.length) * 100 : 0;
+  const departureDateString = listData.departureDate
+    ? listData.departureDate.toDate().toISOString().split('T')[0]
+    : '';
 
   return (
     <motion.div
@@ -136,6 +197,28 @@ export function ListEditView() {
               <span>{listData.isPublic ? 'Offentlig' : 'Privat'}</span>
             </div>
           </div>
+
+          {isOwner && (
+            <div className="flex items-center gap-3">
+              <label className="text-xs font-bold uppercase text-stone-400 flex items-center gap-1">
+                <CalendarDays className="w-3.5 h-3.5" /> Avreisedato
+              </label>
+              <input
+                type="date"
+                value={departureDateString}
+                onChange={(e) => handleDepartureDateChange(e.target.value)}
+                className="px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-stone-900/10 focus:border-stone-900 transition-all"
+              />
+              {departureDateString && (
+                <button
+                  onClick={() => handleDepartureDateChange('')}
+                  className="p-1 text-stone-300 hover:text-stone-500 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex gap-2">
@@ -153,6 +236,61 @@ export function ListEditView() {
         </div>
       </div>
 
+      {/* Cover Image */}
+      {isOwner ? (
+        <div className="relative">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleCoverUpload}
+            className="hidden"
+          />
+          {listData.coverImageURL ? (
+            <div className="relative group rounded-3xl overflow-hidden h-48">
+              <img
+                src={listData.coverImageURL}
+                alt=""
+                className="w-full h-full object-cover"
+              />
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all cursor-pointer flex items-center justify-center"
+              >
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium flex items-center gap-2">
+                  <Camera className="w-5 h-5" /> Endre bilde
+                </span>
+              </div>
+              <button
+                onClick={handleRemoveCover}
+                className="absolute top-3 right-3 p-1.5 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors opacity-0 group-hover:opacity-100"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={coverUploading}
+              className="w-full h-48 bg-stone-50 border-2 border-dashed border-stone-200 rounded-3xl flex flex-col items-center justify-center gap-2 text-stone-400 hover:text-stone-500 hover:border-stone-300 transition-all cursor-pointer"
+            >
+              {coverUploading ? (
+                <Loader2 className="w-8 h-8 animate-spin" />
+              ) : (
+                <>
+                  <Camera className="w-8 h-8" />
+                  <span className="text-sm font-medium">Legg til forsidebilde</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      ) : listData.coverImageURL ? (
+        <div className="rounded-3xl overflow-hidden h-48">
+          <img src={listData.coverImageURL} alt="" className="w-full h-full object-cover" />
+        </div>
+      ) : null}
+
       {/* Progress Bar */}
       <div className="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm space-y-4">
         <div className="flex justify-between items-end">
@@ -169,6 +307,7 @@ export function ListEditView() {
             className="h-full bg-stone-900"
           />
         </div>
+        <DepartureCountdown departureDate={listData.departureDate} />
       </div>
 
       {/* Items */}

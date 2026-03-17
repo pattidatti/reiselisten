@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Backpack, Mountain, Baby, MoreVertical, Globe, Lock, ChevronRight, Star } from 'lucide-react';
 import { Badge } from '../ui/Badge';
+import { CompactCountdown } from './DepartureCountdown';
 import { PackingList } from '../../types';
 
 const categoryLabels: Record<string, string> = {
@@ -36,9 +37,15 @@ export function ListCard({ list, onClick }: { list: PackingList, onClick: () => 
     >
       <div>
         <div className="flex items-start justify-between mb-4">
-          <div className="w-12 h-12 bg-stone-50 rounded-2xl flex items-center justify-center text-stone-400 group-hover:bg-stone-900 group-hover:text-white transition-colors">
-            <Icon className="w-6 h-6" />
-          </div>
+          {list.coverImageURL ? (
+            <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0">
+              <img src={list.coverImageURL} alt="" className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="w-12 h-12 bg-stone-50 rounded-2xl flex items-center justify-center text-stone-400 group-hover:bg-stone-900 group-hover:text-white transition-colors">
+              <Icon className="w-6 h-6" />
+            </div>
+          )}
           <div className="flex items-center gap-2">
             {starCount > 0 && (
               <span className="flex items-center gap-1 text-xs text-stone-400">
@@ -53,7 +60,10 @@ export function ListCard({ list, onClick }: { list: PackingList, onClick: () => 
       </div>
 
       <div className="flex items-center justify-between mt-4">
-        <Badge>{categoryLabels[list.category] || list.category}</Badge>
+        <div className="flex items-center gap-2">
+          <Badge>{categoryLabels[list.category] || list.category}</Badge>
+          <CompactCountdown departureDate={list.departureDate} />
+        </div>
         <div className="flex items-center gap-1 text-xs text-stone-400 font-medium">
           Se liste <ChevronRight className="w-3 h-3" />
         </div>
