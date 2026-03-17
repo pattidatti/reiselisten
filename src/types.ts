@@ -35,6 +35,8 @@ export interface PackingList {
   shareToken: string | null;
   starCount: number;
   copiedFrom: string | null;
+  coverImageURL: string | null;
+  departureDate: Timestamp | null;
   itemCount: number;
   createdAt: Timestamp;
   updatedAt: Timestamp;

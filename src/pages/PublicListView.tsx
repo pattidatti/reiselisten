@@ -10,6 +10,7 @@ import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { StarButton } from '../components/lists/StarButton';
 import { ArrowLeft, CheckCircle2, Circle, Globe, Lock, User as UserIcon, Copy, Backpack } from 'lucide-react';
+import { DepartureCountdown } from '../components/lists/DepartureCountdown';
 import { motion } from 'framer-motion';
 import { cn } from '../utils/cn';
 
@@ -78,6 +79,8 @@ export function PublicListView() {
         sharedWith: [],
         shareToken: null,
         starCount: 0,
+        coverImageURL: null,
+        departureDate: null,
         copiedFrom: listId,
         itemCount: items.length,
         createdAt: serverTimestamp(),
@@ -160,6 +163,13 @@ export function PublicListView() {
             </div>
           </div>
 
+          {/* Cover Image */}
+          {listData.coverImageURL && (
+            <div className="rounded-3xl overflow-hidden h-48">
+              <img src={listData.coverImageURL} alt="" className="w-full h-full object-cover" />
+            </div>
+          )}
+
           {/* Progress */}
           <div className="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm space-y-4">
             <div className="flex justify-between items-end">
@@ -176,6 +186,7 @@ export function PublicListView() {
                 className="h-full bg-stone-900"
               />
             </div>
+            <DepartureCountdown departureDate={listData.departureDate} />
           </div>
 
           {/* Items (read-only) */}

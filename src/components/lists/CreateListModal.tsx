@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../contexts/AuthContext';
 import { handleFirestoreError, OperationType } from '../../utils/firestore-error';
@@ -14,6 +14,7 @@ export function CreateListModal({ isOpen, onClose }: { isOpen: boolean, onClose:
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<PackingList['category']>('General');
   const [isPublic, setIsPublic] = useState(false);
+  const [departureDate, setDepartureDate] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,6 +34,8 @@ export function CreateListModal({ isOpen, onClose }: { isOpen: boolean, onClose:
         ownerDisplayName: userProfile?.displayName || user.displayName || '',
         sharedWith: [],
         shareToken: null,
+        coverImageURL: null,
+        departureDate: departureDate ? Timestamp.fromDate(new Date(departureDate)) : null,
         starCount: 0,
         copiedFrom: null,
         itemCount: 0,
@@ -44,6 +47,7 @@ export function CreateListModal({ isOpen, onClose }: { isOpen: boolean, onClose:
       setDescription('');
       setCategory('General');
       setIsPublic(false);
+      setDepartureDate('');
     } catch (err) {
       handleFirestoreError(err, OperationType.CREATE, 'lists');
     } finally {
@@ -100,6 +104,16 @@ export function CreateListModal({ isOpen, onClose }: { isOpen: boolean, onClose:
               </label>
             </div>
           </div>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs font-bold uppercase text-stone-400">Avreisedato (valgfritt)</label>
+          <input
+            type="date"
+            value={departureDate}
+            onChange={(e) => setDepartureDate(e.target.value)}
+            className="w-full px-4 py-2 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900/10 focus:border-stone-900 transition-all text-sm"
+          />
         </div>
 
         <div className="flex gap-3 pt-4">
