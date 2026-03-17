@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { doc, writeBatch, getDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { signOut } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../firebase';
+import { db, auth, storage } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { validateUsername } from '../utils/username';
 import { generateSearchTerms } from '../utils/search';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Avatar } from '../components/ui/Avatar';
-import { ArrowLeft, Save, Camera, Check } from 'lucide-react';
+import { ArrowLeft, Save, Camera, Check, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function EditProfilePage() {
@@ -248,6 +249,12 @@ export function EditProfilePage() {
           )}
         </Button>
       </form>
+
+      <div className="pt-6 border-t border-stone-200">
+        <Button variant="ghost" onClick={() => signOut(auth)} className="w-full text-stone-400 hover:text-stone-900">
+          <LogOut className="w-4 h-4" /> Logg ut
+        </Button>
+      </div>
     </motion.div>
   );
 }

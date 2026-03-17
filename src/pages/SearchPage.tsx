@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useAuth } from '../contexts/AuthContext';
 import { UserProfile, PackingList } from '../types';
 import { TabButton } from '../components/ui/TabButton';
 import { Input } from '../components/ui/Input';
@@ -11,6 +12,7 @@ import { Search, ArrowLeft, Users, List } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export function SearchPage() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'users' | 'lists'>('users');
@@ -57,9 +59,7 @@ export function SearchPage() {
     return () => clearTimeout(timer);
   }, [searchQuery, activeTab]);
 
-  return (
-    <div className="min-h-screen bg-stone-50">
-      <div className="max-w-3xl mx-auto px-4 py-8">
+  const content = (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -153,6 +153,16 @@ export function SearchPage() {
             </div>
           )}
         </motion.div>
+  );
+
+  if (user) {
+    return content;
+  }
+
+  return (
+    <div className="min-h-screen bg-stone-50">
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        {content}
       </div>
     </div>
   );

@@ -86,7 +86,7 @@ export function Dashboard() {
             <span className="flex items-center gap-1"><Star className="w-3.5 h-3.5" /> Favoritter</span>
           </TabButton>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)}>
+        <Button onClick={() => setIsCreateModalOpen(true)} className="hidden md:flex">
           <Plus className="w-5 h-5" />
           Lag ny liste
         </Button>

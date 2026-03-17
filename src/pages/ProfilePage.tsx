@@ -68,7 +68,7 @@ export function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+      <div className="flex items-center justify-center py-24">
         <div className="animate-pulse flex flex-col items-center gap-4">
           <Backpack className="w-12 h-12 text-stone-300" />
           <div className="h-2 w-24 bg-stone-200 rounded" />
@@ -79,7 +79,7 @@ export function ProfilePage() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-24">
         <div className="text-center">
           <h2 className="text-2xl font-medium mb-2">Bruker ikke funnet</h2>
           <p className="text-stone-500 mb-6">Brukeren «{username}» finnes ikke.</p>
@@ -91,9 +91,9 @@ export function ProfilePage() {
 
   const isOwnProfile = user?.uid === profile.uid;
 
-  return (
-    <div className="min-h-screen bg-stone-50">
-      <div className="max-w-3xl mx-auto px-4 py-8">
+  const isAuthenticated = !!user;
+
+  const content = (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -167,6 +167,16 @@ export function ProfilePage() {
             </div>
           )}
         </motion.div>
+  );
+
+  if (isAuthenticated) {
+    return content;
+  }
+
+  return (
+    <div className="min-h-screen bg-stone-50">
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        {content}
       </div>
     </div>
   );

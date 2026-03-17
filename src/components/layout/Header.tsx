@@ -26,7 +26,7 @@ export function Header() {
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="hidden md:flex items-center gap-4">
         <Button variant="ghost" onClick={() => navigate('/sok')} className="p-2">
           <Search className="w-5 h-5" />
         </Button>
@@ -34,7 +34,7 @@ export function Header() {
         {user && (
           <>
             <div
-              className="hidden md:flex flex-col items-end cursor-pointer hover:opacity-80"
+              className="flex flex-col items-end cursor-pointer hover:opacity-80"
               onClick={() => userProfile?.username ? navigate(`/bruker/${userProfile.username}`) : navigate('/profil/rediger')}
             >
               <span className="text-sm font-medium">{user.displayName || user.email}</span>

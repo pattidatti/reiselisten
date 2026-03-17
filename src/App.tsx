@@ -4,6 +4,7 @@ import { useAuth } from './contexts/AuthContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { RequireAuth } from './components/layout/RequireAuth';
 import { Header } from './components/layout/Header';
+import { BottomNav } from './components/layout/BottomNav';
 import { UsernameSetupModal } from './components/profile/UsernameSetupModal';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
@@ -19,13 +20,24 @@ import { AnimatePresence } from 'framer-motion';
 
 function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <Header />
-      <AnimatePresence mode="wait">
-        {children}
-      </AnimatePresence>
-    </div>
+    <>
+      <div className="max-w-5xl mx-auto px-4 py-4 md:py-8 pb-24 md:pb-8">
+        <Header />
+        <AnimatePresence mode="wait">
+          {children}
+        </AnimatePresence>
+      </div>
+      <BottomNav />
+    </>
   );
+}
+
+function ConditionalAuthLayout({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  if (user) {
+    return <AuthenticatedLayout>{children}</AuthenticatedLayout>;
+  }
+  return <>{children}</>;
 }
 
 export default function App() {
@@ -49,9 +61,9 @@ export default function App() {
           {/* Public routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/logg-inn" element={<LoginPage />} />
-          <Route path="/bruker/:username" element={<ProfilePage />} />
+          <Route path="/bruker/:username" element={<ConditionalAuthLayout><ProfilePage /></ConditionalAuthLayout>} />
           <Route path="/liste/:listId" element={<PublicListView />} />
-          <Route path="/sok" element={<SearchPage />} />
+          <Route path="/sok" element={<ConditionalAuthLayout><SearchPage /></ConditionalAuthLayout>} />
           <Route path="/delt/:token" element={<SharedLinkRedirect />} />
 
           {/* Authenticated routes */}
