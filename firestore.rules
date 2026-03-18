@@ -38,8 +38,7 @@ service cloud.firestore {
         && request.resource.data.uid is string
         && request.resource.data.email is string;
       allow update: if isOwner(uid)
-        && request.resource.data.uid == uid
-        && request.resource.data.email == resource.data.email;
+        && request.resource.data.uid == uid;
       allow delete: if false;
     }
 
