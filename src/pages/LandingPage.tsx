@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSignInWithGoogle, useSignInWithEmailAndPassword, useCreateUserWithEmailAndPassword } from 'react-firebase-hooks/auth';
 import { useCollection } from 'react-firebase-hooks/firestore';
@@ -31,11 +31,13 @@ export function LandingPage() {
   const [publicSnap] = useCollection(publicListsQuery);
   const publicLists = publicSnap?.docs.map(d => ({ id: d.id, ...d.data() } as PackingList)) || [];
 
-  // Redirect if already logged in
-  if (user) {
-    navigate('/dashbord', { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (user) {
+      navigate('/dashbord', { replace: true });
+    }
+  }, [user, navigate]);
+
+  if (user) return null;
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();

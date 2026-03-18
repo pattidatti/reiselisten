@@ -47,6 +47,7 @@ export function ListEditView() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const items = itemsSnap?.docs.map(d => ({ id: d.id, ...d.data() } as ListItem)) || [];
+  const { members } = useListMembers((list as any)?.ownerId, (list as any)?.sharedWith);
 
   const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,7 +168,9 @@ export function ListEditView() {
   const listData = list as unknown as PackingList;
   const isOwner = listData.ownerId === user?.uid;
   const isSharedList = (listData.sharedWith?.length || 0) > 0;
-  const { members } = useListMembers(listData.ownerId, listData.sharedWith);
+  const togglePublic = async () => {
+    await updateDoc(doc(db, 'lists', listId!), { isPublic: !listData.isPublic });
+  };
   const checkedCount = items.filter(i => i.isChecked).length;
   const progress = items.length > 0 ? (checkedCount / items.length) * 100 : 0;
   const departureDateString = listData.departureDate
@@ -203,10 +206,17 @@ export function ListEditView() {
               <UserIcon className="w-4 h-4" />
               <span>{listData.ownerDisplayName || listData.ownerEmail}</span>
             </div>
-            <div className="flex items-center gap-1">
-              {listData.isPublic ? <Globe className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-              <span>{listData.isPublic ? 'Offentlig' : 'Privat'}</span>
-            </div>
+            {isOwner ? (
+              <button onClick={togglePublic} className="flex items-center gap-1 hover:text-stone-600 transition-colors">
+                {listData.isPublic ? <Globe className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                <span>{listData.isPublic ? 'Offentlig' : 'Privat'}</span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-1">
+                {listData.isPublic ? <Globe className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                <span>{listData.isPublic ? 'Offentlig' : 'Privat'}</span>
+              </div>
+            )}
           </div>
 
           {isOwner && (

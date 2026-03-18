@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSignInWithGoogle, useSignInWithEmailAndPassword, useCreateUserWithEmailAndPassword } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase';
@@ -18,10 +18,13 @@ export function LoginPage() {
   const [signInWithEmail] = useSignInWithEmailAndPassword(auth);
   const [createUserWithEmail] = useCreateUserWithEmailAndPassword(auth);
 
-  if (user) {
-    navigate('/dashbord', { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (user) {
+      navigate('/dashbord', { replace: true });
+    }
+  }, [user, navigate]);
+
+  if (user) return null;
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();

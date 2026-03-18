@@ -45,7 +45,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+      <div className="min-h-dvh flex items-center justify-center bg-stone-50">
         <div className="animate-pulse flex flex-col items-center gap-4">
           <Backpack className="w-12 h-12 text-stone-300" />
           <div className="h-2 w-24 bg-stone-200 rounded" />
@@ -56,7 +56,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-stone-50 text-stone-900 font-sans selection:bg-stone-900 selection:text-white">
+      <div className="min-h-dvh bg-stone-50 text-stone-900 font-sans selection:bg-stone-900 selection:text-white">
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<LandingPage />} />

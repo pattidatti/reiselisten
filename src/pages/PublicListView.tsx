@@ -32,6 +32,7 @@ export function PublicListView() {
   );
   const [itemsSnap] = useCollection(itemsQuery);
   const items = itemsSnap?.docs.map(d => ({ id: d.id, ...d.data() } as ListItem)) || [];
+  const { members } = useListMembers((list as any)?.ownerId, (list as any)?.sharedWith);
 
   if (listLoading) {
     return (
@@ -61,7 +62,6 @@ export function PublicListView() {
   const isShared = user && listData.sharedWith?.includes(user.uid);
   const canEdit = isOwner || isShared;
   const isSharedList = (listData.sharedWith?.length || 0) > 0;
-  const { members } = useListMembers(listData.ownerId, listData.sharedWith);
   const checkedCount = items.filter(i => i.isChecked).length;
   const progress = items.length > 0 ? (checkedCount / items.length) * 100 : 0;
 

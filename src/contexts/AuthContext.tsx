@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           let data = updatedProfileDoc.data() as UserProfile;
 
           // Backfill missing fields for older profiles — only set defaults for fields that are actually missing
-          if (data.followerCount === undefined) {
+          if (data.followerCount === undefined || data.searchTerms === undefined) {
             const defaults: Record<string, unknown> = {
               followerCount: 0,
               followingCount: 0,
