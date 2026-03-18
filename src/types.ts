@@ -47,7 +47,16 @@ export interface ListItem {
   text: string;
   isChecked: boolean;
   listId: string;
+  assignedTo?: string | null;
+  assignedToName?: string | null;
   createdAt: Timestamp;
+}
+
+export interface ListMemberInfo {
+  uid: string;
+  displayName: string;
+  photoURL: string;
+  isOwner: boolean;
 }
 
 export interface Follow {

@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ===============================================================
-    // Helper Functions
+    // Helper Functions — updated 2026-03-18
     // ===============================================================
     function isAuthenticated() {
       return request.auth != null;

@@ -8,7 +8,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { PackingList, ListItem } from '../types';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
+import { Avatar } from '../components/ui/Avatar';
 import { StarButton } from '../components/lists/StarButton';
+import { useListMembers } from '../hooks/useListMembers';
 import { ArrowLeft, CheckCircle2, Circle, Globe, Lock, User as UserIcon, Copy, Backpack } from 'lucide-react';
 import { DepartureCountdown } from '../components/lists/DepartureCountdown';
 import { motion } from 'framer-motion';
@@ -58,6 +60,8 @@ export function PublicListView() {
   const isOwner = user?.uid === listData.ownerId;
   const isShared = user && listData.sharedWith?.includes(user.uid);
   const canEdit = isOwner || isShared;
+  const isSharedList = (listData.sharedWith?.length || 0) > 0;
+  const { members } = useListMembers(listData.ownerId, listData.sharedWith);
   const checkedCount = items.filter(i => i.isChecked).length;
   const progress = items.length > 0 ? (checkedCount / items.length) * 100 : 0;
 
@@ -197,24 +201,43 @@ export function PublicListView() {
               </div>
             ) : (
               <div className="divide-y divide-stone-100">
-                {items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-4 p-4"
-                  >
-                    {item.isChecked ? (
-                      <CheckCircle2 className="w-6 h-6 text-stone-900 flex-shrink-0" />
-                    ) : (
-                      <Circle className="w-6 h-6 text-stone-200 flex-shrink-0" />
-                    )}
-                    <span className={cn(
-                      'text-lg',
-                      item.isChecked ? 'text-stone-300 line-through' : 'text-stone-900'
-                    )}>
-                      {item.text}
-                    </span>
-                  </div>
-                ))}
+                {items.map((item) => {
+                  const assignedMember = item.assignedTo
+                    ? members.find(m => m.uid === item.assignedTo)
+                    : null;
+                  const assignedName = assignedMember?.displayName || item.assignedToName;
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex items-center gap-4 p-4"
+                    >
+                      {item.isChecked ? (
+                        <CheckCircle2 className="w-6 h-6 text-stone-900 flex-shrink-0" />
+                      ) : (
+                        <Circle className="w-6 h-6 text-stone-200 flex-shrink-0" />
+                      )}
+                      <span className={cn(
+                        'text-lg flex-1 min-w-0 truncate',
+                        item.isChecked ? 'text-stone-300 line-through' : 'text-stone-900'
+                      )}>
+                        {item.text}
+                      </span>
+                      {isSharedList && item.assignedTo && assignedName && (
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <Avatar
+                            photoURL={assignedMember?.photoURL}
+                            displayName={assignedName}
+                            size="xs"
+                          />
+                          <span className="text-xs text-stone-400 hidden sm:inline max-w-[80px] truncate">
+                            {assignedName.split(' ')[0]}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

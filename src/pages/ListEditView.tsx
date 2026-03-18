@@ -16,6 +16,9 @@ import { Badge } from '../components/ui/Badge';
 import { ShareModal } from '../components/lists/ShareModal';
 import { StarButton } from '../components/lists/StarButton';
 import { DepartureCountdown } from '../components/lists/DepartureCountdown';
+import { AssignPopover } from '../components/lists/AssignPopover';
+import { Avatar } from '../components/ui/Avatar';
+import { useListMembers } from '../hooks/useListMembers';
 import {
   ArrowLeft, CheckCircle2, Circle, Trash2, Share2, Globe, Lock,
   User as UserIcon, Backpack, Camera, X, CalendarDays, Loader2,
@@ -40,6 +43,7 @@ export function ListEditView() {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
   const [coverError, setCoverError] = useState<string | null>(null);
+  const [activePopoverItemId, setActivePopoverItemId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const items = itemsSnap?.docs.map(d => ({ id: d.id, ...d.data() } as ListItem)) || [];
@@ -162,6 +166,8 @@ export function ListEditView() {
 
   const listData = list as unknown as PackingList;
   const isOwner = listData.ownerId === user?.uid;
+  const isSharedList = (listData.sharedWith?.length || 0) > 0;
+  const { members } = useListMembers(listData.ownerId, listData.sharedWith);
   const checkedCount = items.filter(i => i.isChecked).length;
   const progress = items.length > 0 ? (checkedCount / items.length) * 100 : 0;
   const departureDateString = listData.departureDate
@@ -337,35 +343,88 @@ export function ListEditView() {
             </div>
           ) : (
             <div className="divide-y divide-stone-100">
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className="group flex items-center justify-between p-4 hover:bg-stone-50 transition-colors"
-                >
+              {items.map((item) => {
+                const assignedMember = item.assignedTo
+                  ? members.find(m => m.uid === item.assignedTo)
+                  : null;
+
+                return (
                   <div
-                    className="flex items-center gap-4 cursor-pointer flex-1"
-                    onClick={() => toggleItem(item)}
+                    key={item.id}
+                    className="group flex items-center justify-between p-4 hover:bg-stone-50 transition-colors"
                   >
-                    {item.isChecked ? (
-                      <CheckCircle2 className="w-6 h-6 text-stone-900" />
-                    ) : (
-                      <Circle className="w-6 h-6 text-stone-200 group-hover:text-stone-400" />
-                    )}
-                    <span className={cn(
-                      'text-lg transition-all',
-                      item.isChecked ? 'text-stone-300 line-through' : 'text-stone-900'
-                    )}>
-                      {item.text}
-                    </span>
+                    <div
+                      className="flex items-center gap-4 cursor-pointer flex-1 min-w-0"
+                      onClick={() => toggleItem(item)}
+                    >
+                      {item.isChecked ? (
+                        <CheckCircle2 className="w-6 h-6 text-stone-900 flex-shrink-0" />
+                      ) : (
+                        <Circle className="w-6 h-6 text-stone-200 group-hover:text-stone-400 flex-shrink-0" />
+                      )}
+                      <span className={cn(
+                        'text-lg transition-all truncate',
+                        item.isChecked ? 'text-stone-300 line-through' : 'text-stone-900'
+                      )}>
+                        {item.text}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {isSharedList && (
+                        <div className="relative">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActivePopoverItemId(activePopoverItemId === item.id ? null : item.id);
+                            }}
+                            className="flex items-center gap-1.5 p-1 rounded-lg hover:bg-stone-100 transition-colors"
+                          >
+                            {item.assignedTo && assignedMember ? (
+                              <>
+                                <Avatar
+                                  photoURL={assignedMember.photoURL}
+                                  displayName={assignedMember.displayName}
+                                  size="xs"
+                                />
+                                <span className="text-xs text-stone-400 hidden sm:inline max-w-[80px] truncate">
+                                  {assignedMember.displayName.split(' ')[0]}
+                                </span>
+                              </>
+                            ) : item.assignedTo && item.assignedToName ? (
+                              <>
+                                <Avatar size="xs" />
+                                <span className="text-xs text-stone-400 hidden sm:inline max-w-[80px] truncate">
+                                  {item.assignedToName.split(' ')[0]}
+                                </span>
+                              </>
+                            ) : (
+                              <div className="w-6 h-6 rounded-full border border-dashed border-stone-200 flex items-center justify-center">
+                                <UserIcon className="w-3 h-3 text-stone-300" />
+                              </div>
+                            )}
+                          </button>
+                          <AssignPopover
+                            isOpen={activePopoverItemId === item.id}
+                            onClose={() => setActivePopoverItemId(null)}
+                            members={members}
+                            currentAssignedTo={item.assignedTo}
+                            listId={listId!}
+                            itemId={item.id}
+                          />
+                        </div>
+                      )}
+
+                      <button
+                        onClick={() => deleteItem(item.id)}
+                        className="p-2 text-stone-200 hover:text-red-500 transition-colors sm:opacity-0 sm:group-hover:opacity-100"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    onClick={() => deleteItem(item.id)}
-                    className="p-2 text-stone-200 hover:text-red-500 transition-colors sm:opacity-0 sm:group-hover:opacity-100"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
