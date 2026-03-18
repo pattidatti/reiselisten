@@ -39,6 +39,7 @@ export function ListEditView() {
   const [newItemText, setNewItemText] = useState('');
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
+  const [coverError, setCoverError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const items = itemsSnap?.docs.map(d => ({ id: d.id, ...d.data() } as ListItem)) || [];
@@ -102,6 +103,7 @@ export function ListEditView() {
     }
 
     setCoverUploading(true);
+    setCoverError(null);
     try {
       const coverRef = ref(storage, `listCovers/${listId}`);
       await uploadBytes(coverRef, file);
@@ -111,7 +113,8 @@ export function ListEditView() {
         updatedAt: serverTimestamp(),
       });
     } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, `lists/${listId}`);
+      console.error('Feil ved opplasting av forsidebilde:', err);
+      setCoverError('Kunne ikke laste opp bildet. Prøv igjen.');
     } finally {
       setCoverUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -119,6 +122,7 @@ export function ListEditView() {
   };
 
   const handleRemoveCover = async () => {
+    setCoverError(null);
     try {
       const coverRef = ref(storage, `listCovers/${listId}`);
       await deleteObject(coverRef).catch(() => {});
@@ -127,7 +131,8 @@ export function ListEditView() {
         updatedAt: serverTimestamp(),
       });
     } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, `lists/${listId}`);
+      console.error('Feil ved fjerning av forsidebilde:', err);
+      setCoverError('Kunne ikke fjerne bildet. Prøv igjen.');
     }
   };
 
@@ -283,6 +288,9 @@ export function ListEditView() {
                 </>
               )}
             </button>
+          )}
+          {coverError && (
+            <p className="mt-2 text-sm text-red-500">{coverError}</p>
           )}
         </div>
       ) : listData.coverImageURL ? (

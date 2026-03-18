@@ -9,6 +9,7 @@ const firebaseConfig = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
   firestoreDatabaseId: import.meta.env.VITE_FIREBASE_FIRESTORE_DB_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
 };
 
 const app = initializeApp(firebaseConfig);

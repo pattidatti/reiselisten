@@ -203,7 +203,6 @@ export function EditProfilePage() {
               required
             />
           </div>
-          {error && <p className="text-sm text-red-500">{error}</p>}
           <p className="text-xs text-stone-400">3-30 tegn. Små bokstaver, tall og bindestrek.</p>
         </div>
 
@@ -220,6 +219,16 @@ export function EditProfilePage() {
         </div>
 
         <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="flex items-center gap-2 px-4 py-3 bg-red-50 text-red-700 border border-red-200 rounded-xl text-sm font-medium"
+            >
+              {error}
+            </motion.div>
+          )}
           {saved && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}

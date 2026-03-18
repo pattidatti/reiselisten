@@ -39,45 +39,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const displayName = firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Bruker';
 
-      // Check if profile already exists before syncing
+      // Read profile first — this must succeed for the app to work
       const profileDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
       const isNewUser = !profileDoc.exists();
 
-      // Only set displayName/photoURL for new users — existing users manage these via profile editing
-      await setDoc(doc(db, 'users', firebaseUser.uid), {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email,
-        ...(isNewUser ? {
-          displayName,
-          photoURL: firebaseUser.photoURL || '',
-        } : {}),
-        updatedAt: serverTimestamp(),
-      }, { merge: true });
-
-      // Reload profile after sync
-      const updatedProfileDoc = isNewUser
-        ? await getDoc(doc(db, 'users', firebaseUser.uid))
-        : profileDoc;
-      if (updatedProfileDoc.exists()) {
-        const data = updatedProfileDoc.data() as UserProfile;
+      // For existing users, load profile into context immediately
+      // (before attempting writes that might fail due to permissions)
+      if (!isNewUser && profileDoc.exists()) {
+        const data = profileDoc.data() as UserProfile;
         setUserProfile(data);
         setNeedsUsernameSetup(!data.username);
+      }
 
-        // If profile exists but missing new fields, add defaults
-        if (data.followerCount === undefined) {
-          await setDoc(doc(db, 'users', firebaseUser.uid), {
-            bio: '',
-            isProfilePublic: true,
-            followerCount: 0,
-            followingCount: 0,
-            publicListCount: 0,
-            searchTerms: generateSearchTerms(displayName, data.username || ''),
-            createdAt: data.createdAt || serverTimestamp(),
-          }, { merge: true });
+      // Try to sync writes — non-critical, profile is already loaded above
+      try {
+        await setDoc(doc(db, 'users', firebaseUser.uid), {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          ...(isNewUser ? {
+            displayName,
+            photoURL: firebaseUser.photoURL || '',
+          } : {}),
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+
+        // Re-read profile after successful write
+        const updatedProfileDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+        if (updatedProfileDoc.exists()) {
+          let data = updatedProfileDoc.data() as UserProfile;
+
+          // Backfill missing fields for older profiles — only set defaults for fields that are actually missing
+          if (data.followerCount === undefined) {
+            const defaults: Record<string, unknown> = {
+              followerCount: 0,
+              followingCount: 0,
+              publicListCount: 0,
+            };
+            if (data.bio === undefined) defaults.bio = '';
+            if (data.isProfilePublic === undefined) defaults.isProfilePublic = true;
+            if (data.searchTerms === undefined) {
+              defaults.searchTerms = generateSearchTerms(displayName, data.username || '');
+            }
+            if (data.createdAt === undefined) defaults.createdAt = serverTimestamp();
+            await setDoc(doc(db, 'users', firebaseUser.uid), defaults, { merge: true });
+
+            // Re-read after backfill to get consistent state
+            const postBackfillDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+            if (postBackfillDoc.exists()) {
+              data = postBackfillDoc.data() as UserProfile;
+            }
+          }
+
+          setUserProfile(data);
+          setNeedsUsernameSetup(!data.username);
         }
+      } catch (writeErr) {
+        console.warn('Kunne ikke synkronisere profil (skriving feilet, men profil er lastet)', writeErr);
       }
     } catch (err) {
-      console.error('Kunne ikke synkronisere brukerprofil', err);
+      console.error('Kunne ikke laste brukerprofil', err);
     } finally {
       setProfileLoading(false);
     }
